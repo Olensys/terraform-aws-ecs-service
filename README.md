@@ -1,6 +1,6 @@
-# __NAME__
+# terraform-aws-ecs-service
 
-__DESCRIPTION__
+Fargate ECS service with task definition, container definitions, scoped IAM, optional ALB ingress, autoscaling and alarms
 
 ## Opinions
 
@@ -10,7 +10,7 @@ __DESCRIPTION__
 
 ```hcl
 module "this" {
-  source = "git::https://github.com/Olensys/__NAME__.git?ref=v1.0.0"
+  source = "git::https://github.com/Olensys/terraform-aws-ecs-service.git?ref=v1.0.0"
 
   name = "example"
   context = {

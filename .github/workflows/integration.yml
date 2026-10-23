@@ -11,5 +11,5 @@ jobs:
   integration:
     uses: Olensys/terraform-workflows/.github/workflows/module-integration.yml@v1
     with:
-      cloud: __CLOUD__
+      cloud: aws
     secrets: inherit
