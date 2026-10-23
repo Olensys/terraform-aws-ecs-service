@@ -8,7 +8,10 @@ Fargate ECS service with task definition, container definitions, scoped IAM, opt
 - Every container has a read-only root filesystem.
 - One CloudWatch log group per container, named `/ecs/<name>/<container>`, with the container's `log_retention_days`.
 - Tags propagate from the service (`propagate_tags = "SERVICE"`); the deployment circuit breaker is on with rollback; task definition changes are not ignored.
-- The execution role may read exactly the SSM parameters referenced by container `secrets`, never `*`.
+- The execution role's SSM statement is scoped to exactly the parameters referenced by container `secrets`, never `*`. Upstream's Logs and ECR statements use `*` as in AWS's managed execution policy.
+- Containers must tolerate a read-only root filesystem (Fargate has no tmpfs); write to mounted volumes instead.
+- `desired_count` applies at creation only; later changes are ignored so autoscaling and deployments own the count.
+- The target group name is fixed to `name` (max 32 characters); renaming replaces it.
 - The service security group allows all egress and, when `ingress` is set, inbound traffic only from the load balancer security group on the container port.
 - When `ingress` is set the module creates an `ip` target group and a listener rule (host header and/or path pattern conditions). `name` is limited to 32 characters because of the target group.
 - Optional target-tracking autoscaling, CPU and memory CloudWatch alarms, and an inline task role policy from `task_role_policy_json`.
@@ -27,8 +30,8 @@ module "this" {
   }
   containers = {
     app = {
-      image = "public.ecr.aws/nginx/nginx:stable"
-      port  = 80
+      image   = "public.ecr.aws/amazonlinux/amazonlinux:2023"
+      command = ["sleep", "infinity"]
     }
   }
   context = {
@@ -40,6 +43,14 @@ module "this" {
   }
 }
 ```
+
+## Nightly integration
+
+The nightly apply test runs `examples/minimal` and needs these GitHub repository variables, exported as environment variables:
+
+- `TF_VAR_cluster_arn`: ARN of an existing ECS cluster.
+- `TF_VAR_vpc_id`: VPC for the tasks.
+- `TF_VAR_subnet_ids`: JSON list string of subnet IDs, for example `["subnet-aaa","subnet-bbb"]`.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -84,7 +95,7 @@ module "this" {
 | <a name="input_autoscaling"></a> [autoscaling](#input\_autoscaling) | Optional target-tracking autoscaling. memory\_target adds a memory policy when set. | <pre>object({<br/>    min           = number<br/>    max           = number<br/>    cpu_target    = optional(number, 70)<br/>    memory_target = optional(number)<br/>  })</pre> | `null` | no |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | Task-level CPU units (Fargate sizes: 256, 512, 1024, 2048, 4096, 8192, 16384). | `number` | `512` | no |
 | <a name="input_create"></a> [create](#input\_create) | Whether to create any resources. Set false to create nothing. | `bool` | `true` | no |
-| <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | Desired number of running tasks. | `number` | `1` | no |
+| <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | Desired number of running tasks. Applies at creation only: later changes are ignored by the underlying service so that autoscaling and deployments own the count. | `number` | `1` | no |
 | <a name="input_enable_execute_command"></a> [enable\_execute\_command](#input\_enable\_execute\_command) | Whether to enable ECS Exec on the service. | `bool` | `false` | no |
 | <a name="input_ingress"></a> [ingress](#input\_ingress) | Optional ALB ingress: listener to attach a rule to, the ALB security group allowed to reach the tasks, and the routed container. Set at least one of host\_headers or path\_patterns. | <pre>object({<br/>    listener_arn          = string<br/>    alb_security_group_id = string<br/>    container_name        = string<br/>    host_headers          = optional(list(string))<br/>    path_patterns         = optional(list(string))<br/>    priority              = optional(number)<br/>    health_check_path     = optional(string, "/health")<br/>    deregistration_delay  = optional(number, 30)<br/>  })</pre> | `null` | no |
 | <a name="input_memory"></a> [memory](#input\_memory) | Task-level memory in MiB. | `number` | `1024` | no |

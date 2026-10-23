@@ -56,8 +56,13 @@ run "test_create_false_plans_nothing" {
   }
 
   assert {
-    condition     = length(aws_lb_target_group.this) == 0 && length(aws_cloudwatch_metric_alarm.cpu) == 0
+    condition     = length(aws_lb_target_group.this) == 0 && length(aws_lb_listener_rule.this) == 0 && length(aws_cloudwatch_metric_alarm.cpu) == 0 && length(aws_cloudwatch_metric_alarm.memory) == 0 && length(aws_iam_role_policy.task) == 0
     error_message = "No root resources may be planned when create is false."
+  }
+
+  assert {
+    condition     = output.execution_policy_ssm_parameter_arns == null && output.log_group_names == null && output.deployment_circuit_breaker_enabled == null
+    error_message = "Test-support outputs must be null when create is false."
   }
 }
 
@@ -115,6 +120,7 @@ run "test_no_ingress_no_tg" {
 }
 
 run "test_secrets_scope_execution_policy" {
+  # SMOKE: asserts the local list passed to upstream as task_exec_ssm_param_arns equals the secrets' ARNs, not the rendered execution policy. Upstream's Logs and ECR statements use * (as in AWS's managed policy) and are not visible here; the real check is the apply test.
   command = plan
 
   variables {
@@ -148,6 +154,7 @@ run "test_secrets_scope_execution_policy" {
 }
 
 run "test_log_group_per_container" {
+  # SMOKE: asserts the computed name map only, not log group creation or retention; the apply test and trivy cover the real resources.
   command = plan
 
   variables {
@@ -170,6 +177,7 @@ run "test_log_group_per_container" {
 }
 
 run "test_circuit_breaker_on" {
+  # SMOKE: asserts the literal passed to upstream, not the resulting service attribute; the apply test covers the real service.
   command = plan
 
   assert {
@@ -179,6 +187,7 @@ run "test_circuit_breaker_on" {
 }
 
 run "test_two_instances_distinct_role_names" {
+  # SMOKE: asserts the target group and log group names derive from the instance name, not IAM role names (upstream role names are not visible to tests).
   command = plan
 
   variables {
@@ -198,6 +207,7 @@ run "test_two_instances_distinct_role_names" {
 }
 
 run "test_two_instances_distinct_role_names_b" {
+  # SMOKE: second instance of the pair above; same limits.
   command = plan
 
   variables {
@@ -231,7 +241,8 @@ run "test_alarms_created" {
   }
 }
 
-run "test_autoscaling_and_task_policy_plan" {
+run "test_task_policy_and_container_shape_plan" {
+  # SMOKE: asserts only the module-owned task role inline policy; the rest proves the health check, command, environment, autoscaling and execute-command inputs convert to upstream's types at plan. Autoscaling resources live in upstream and are not visible.
   command = plan
 
   variables {
@@ -259,6 +270,49 @@ run "test_autoscaling_and_task_policy_plan" {
     condition     = length(aws_iam_role_policy.task) == 1 && aws_iam_role_policy.task[0].name == "example-task"
     error_message = "The task role inline policy must be created from task_role_policy_json."
   }
+}
+
+run "test_tags_contract" {
+  command = plan
+
+  variables {
+    tags = { Owner = "x" }
+    context = {
+      organization = "olensys"
+      environment  = "test"
+      application  = "example"
+      owner        = "platform"
+      cost_center  = "eng"
+      extra_tags   = { Owner = "y", Team = "z" }
+    }
+  }
+
+  assert {
+    condition     = output.tags.Owner == "x" && output.tags.Team == "z"
+    error_message = "var.tags must win over context.extra_tags, and extra_tags must still be merged."
+  }
+}
+
+run "test_autoscaling_bounds_rejected" {
+  command = plan
+
+  variables {
+    autoscaling = { min = 5, max = 2 }
+  }
+
+  expect_failures = [var.autoscaling]
+}
+
+run "test_log_retention_rejected" {
+  command = plan
+
+  variables {
+    containers = {
+      app = { image = "x", port = 80, log_retention_days = 10 }
+    }
+  }
+
+  expect_failures = [var.containers]
 }
 
 run "test_name_length_validation" {

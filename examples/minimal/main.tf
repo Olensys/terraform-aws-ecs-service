@@ -43,8 +43,9 @@ module "this" {
   }
   containers = {
     app = {
-      image = "public.ecr.aws/nginx/nginx:stable"
-      port  = 80
+      # Containers must tolerate the module's read-only root filesystem; this image only sleeps.
+      image   = "public.ecr.aws/amazonlinux/amazonlinux:2023"
+      command = ["sleep", "infinity"]
     }
   }
 }

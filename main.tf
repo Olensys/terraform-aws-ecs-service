@@ -4,7 +4,7 @@ locals {
   cluster_name = var.create ? element(split("/", var.cluster_arn), 1) : null
 
   ingress_enabled = var.create && var.ingress != null
-  ingress_port    = var.ingress == null ? null : var.containers[var.ingress.container_name].port
+  ingress_port    = var.ingress == null ? null : try(var.containers[var.ingress.container_name].port, null)
 
   execution_policy_ssm_parameter_arns = distinct(flatten([for c in var.containers : values(c.secrets)]))
 
@@ -71,6 +71,7 @@ locals {
 resource "aws_lb_target_group" "this" {
   count = local.ingress_enabled ? 1 : 0
 
+  # The name is fixed to var.name (max 32 characters); changing it replaces the target group.
   name                 = var.name
   vpc_id               = var.network.vpc_id
   target_type          = "ip"
@@ -88,7 +89,7 @@ resource "aws_lb_target_group" "this" {
 
   lifecycle {
     precondition {
-      condition     = contains(keys(var.containers), var.ingress.container_name) && try(var.containers[var.ingress.container_name].port, null) != null
+      condition     = local.ingress_port != null
       error_message = "ingress.container_name must name a container that defines a port."
     }
   }

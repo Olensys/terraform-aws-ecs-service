@@ -59,6 +59,12 @@ variable "containers" {
     condition     = length(var.containers) > 0
     error_message = "containers must define at least one container."
   }
+  validation {
+    condition = alltrue([for c in var.containers : contains(
+      [0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653],
+    c.log_retention_days)])
+    error_message = "containers[*].log_retention_days must be a value CloudWatch Logs accepts (0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288 or 3653)."
+  }
 }
 
 variable "cpu" {
@@ -74,9 +80,13 @@ variable "memory" {
 }
 
 variable "desired_count" {
-  description = "Desired number of running tasks."
+  description = "Desired number of running tasks. Applies at creation only: later changes are ignored by the underlying service so that autoscaling and deployments own the count."
   type        = number
   default     = 1
+  validation {
+    condition     = var.desired_count >= 0
+    error_message = "desired_count must be zero or greater."
+  }
 }
 
 variable "network" {
@@ -105,6 +115,10 @@ variable "ingress" {
     condition     = var.ingress == null ? true : (length(coalesce(var.ingress.host_headers, [])) + length(coalesce(var.ingress.path_patterns, []))) > 0
     error_message = "ingress needs at least one of host_headers or path_patterns."
   }
+  validation {
+    condition     = var.ingress == null ? true : (var.ingress.priority == null ? true : (var.ingress.priority >= 1 && var.ingress.priority <= 50000))
+    error_message = "ingress.priority must be between 1 and 50000 when set."
+  }
 }
 
 variable "autoscaling" {
@@ -116,6 +130,16 @@ variable "autoscaling" {
     memory_target = optional(number)
   })
   default = null
+  validation {
+    condition     = var.autoscaling == null ? true : (var.autoscaling.min <= var.autoscaling.max && var.autoscaling.min >= 0)
+    error_message = "autoscaling.min must be zero or greater and not exceed autoscaling.max."
+  }
+  validation {
+    condition = var.autoscaling == null ? true : (
+      var.autoscaling.cpu_target >= 1 && var.autoscaling.cpu_target <= 100 &&
+    (var.autoscaling.memory_target == null ? true : (var.autoscaling.memory_target >= 1 && var.autoscaling.memory_target <= 100)))
+    error_message = "autoscaling.cpu_target and autoscaling.memory_target must be between 1 and 100."
+  }
 }
 
 variable "alarms" {
