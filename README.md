@@ -11,7 +11,7 @@ Fargate ECS service with task definition, container definitions, scoped IAM, opt
 - The execution role's SSM statement is scoped to exactly the parameters referenced by container `secrets`, never `*`. Upstream's Logs and ECR statements use `*` as in AWS's managed execution policy.
 - Containers must tolerate a read-only root filesystem (Fargate has no tmpfs); write to mounted volumes instead.
 - `desired_count` applies at creation only; later changes are ignored so autoscaling and deployments own the count.
-- The target group name is fixed to `name` (max 32 characters); renaming replaces it.
+- The target group name is fixed to `name` (max 32 characters); renaming forces a new one.
 - The service security group allows all egress and, when `ingress` is set, inbound traffic only from the load balancer security group on the container port.
 - When `ingress` is set the module creates an `ip` target group and a listener rule (host header and/or path pattern conditions). `name` is limited to 32 characters because of the target group.
 - Optional target-tracking autoscaling, CPU and memory CloudWatch alarms, and an inline task role policy from `task_role_policy_json`.

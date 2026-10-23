@@ -71,7 +71,7 @@ locals {
 resource "aws_lb_target_group" "this" {
   count = local.ingress_enabled ? 1 : 0
 
-  # The name is fixed to var.name (max 32 characters); changing it replaces the target group.
+  # The name is fixed to var.name (max 32 characters); changing it forces a new target group.
   name                 = var.name
   vpc_id               = var.network.vpc_id
   target_type          = "ip"
