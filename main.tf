@@ -188,6 +188,7 @@ module "this" {
   propagate_tags                 = "SERVICE"
   ignore_task_definition_changes = false
   enable_execute_command         = var.enable_execute_command
+  wait_for_steady_state          = true
 
   # Execution role: secrets access scoped to exactly the referenced parameters.
   task_exec_ssm_param_arns = local.execution_policy_ssm_parameter_arns

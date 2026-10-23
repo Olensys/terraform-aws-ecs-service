@@ -9,6 +9,7 @@ Fargate ECS service with task definition, container definitions, scoped IAM, opt
 - One CloudWatch log group per container, named `/ecs/<name>/<container>`, with the container's `log_retention_days`.
 - Tags propagate from the service (`propagate_tags = "SERVICE"`); the deployment circuit breaker is on with rollback; task definition changes are not ignored.
 - The execution role's SSM statement is scoped to exactly the parameters referenced by container `secrets`, never `*`. Upstream's Logs and ECR statements use `*` as in AWS's managed execution policy.
+- Every deployment waits for steady state (`wait_for_steady_state = true`), so a deployment that never stabilises fails the apply, consistent with the circuit breaker and rollback.
 - Containers must tolerate a read-only root filesystem (Fargate has no tmpfs); write to mounted volumes instead.
 - `desired_count` applies at creation only; later changes are ignored so autoscaling and deployments own the count.
 - The target group name is fixed to `name` (max 32 characters); renaming forces a new one.
