@@ -1,1 +1,3 @@
 # One ID per line, each with a justification comment.
+# Fargate tasks need outbound access to pull images and reach ECR, SSM and CloudWatch Logs; the service security group allows all egress by design and restricts ingress to the load balancer.
+AWS-0104

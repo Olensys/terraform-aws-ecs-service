@@ -1,4 +1,3 @@
-# `common` modules (no cloud provider) should delete this workflow.
 name: integration
 on:
   schedule:
