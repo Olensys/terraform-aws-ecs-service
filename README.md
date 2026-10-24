@@ -20,10 +20,16 @@ Fargate ECS service with task definition, container definitions, scoped IAM, opt
 ## Usage
 
 ```hcl
-module "this" {
-  source = "git::https://github.com/Olensys/terraform-aws-ecs-service.git?ref=v1.0.0"
+module "naming" {
+  source  = "git::https://github.com/Olensys/terraform-null-naming.git?ref=v1.0.1"
+  context = var.context
+}
 
-  name        = "example"
+module "ecs_service" {
+  source  = "git::https://github.com/Olensys/terraform-aws-ecs-service.git?ref=v1.0.1"
+  name    = module.naming.name
+  context = var.context
+
   cluster_arn = module.cluster.arn
   network = {
     vpc_id     = "vpc-0123456789abcdef0"
@@ -35,13 +41,8 @@ module "this" {
       command = ["sleep", "infinity"]
     }
   }
-  context = {
-    organization = "olensys"
-    environment  = "dev"
-    application  = "example"
-    owner        = "platform"
-    cost_center  = "eng"
-  }
+
+  tags = module.naming.tags
 }
 ```
 

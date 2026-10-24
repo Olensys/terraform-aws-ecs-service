@@ -2,6 +2,8 @@
 
 ## 1.0.1
 
+Note: `wait for steady state on every deployment` is a behaviour change that would normally be a minor release; it shipped in 1.0.1.
+
 ### Fixes
 
 - render declared provider constraints and skip .terraform in trivy scans
