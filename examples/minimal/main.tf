@@ -22,7 +22,7 @@ variable "subnet_ids" {
 }
 
 module "naming" {
-  source = "git::https://github.com/Olensys/terraform-null-naming.git?ref=v1.0.0"
+  source = "git::https://github.com/Olensys/terraform-null-naming.git?ref=v1.0.1"
 
   context = local.context
 }
@@ -43,6 +43,9 @@ module "this" {
   name    = substr(module.naming.name, 0, 32)
   context = local.context
   tags    = module.naming.tags
+
+  cpu    = 256
+  memory = 512
 
   cluster_arn = var.cluster_arn
   network = {
