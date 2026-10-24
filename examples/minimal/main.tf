@@ -31,7 +31,7 @@ locals {
   context = {
     organization = "olensys"
     environment  = "test"
-    application  = "example"
+    application  = "ecssvc"
     owner        = "platform"
     cost_center  = "eng"
   }
