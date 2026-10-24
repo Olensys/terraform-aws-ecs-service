@@ -51,6 +51,8 @@ module "this" {
   network = {
     vpc_id     = var.vpc_id
     subnet_ids = var.subnet_ids
+    # the shared test VPC has no NAT gateway; tasks need a public IP to pull the image
+    assign_public_ip = true
   }
   containers = {
     app = {
