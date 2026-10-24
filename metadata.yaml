@@ -1,7 +1,7 @@
 name: terraform-aws-ecs-service
 cloud: aws          # aws | google | common
 tier: capability          # primitive | capability | blueprint
-maturity: experimental    # experimental | stable | deprecated
+maturity: stable    # experimental | stable | deprecated
 description: Fargate ECS service with task definition, container definitions, scoped IAM, optional ALB ingress, autoscaling and alarms
 owners: [platform]
 upstream: "terraform-aws-modules/ecs/aws//modules/service 7.6.1"
