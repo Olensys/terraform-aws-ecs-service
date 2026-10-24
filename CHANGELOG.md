@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/Olensys/terraform-aws-ecs-service/compare/v1.0.2...v1.0.3) (2026-10-24)
+
+
+### Bug Fixes
+
+* **examples:** unique application slug so concurrent integration runs do not collide ([#2](https://github.com/Olensys/terraform-aws-ecs-service/issues/2)) ([562ece2](https://github.com/Olensys/terraform-aws-ecs-service/commit/562ece227b56bd609535d20cd6d965e5e4f1802a))
+
 ## [1.0.2](https://github.com/Olensys/terraform-aws-ecs-service/compare/v1.0.1...v1.0.2) (2026-10-24)
 
 
