@@ -324,3 +324,78 @@ run "test_name_length_validation" {
 
   expect_failures = [var.name]
 }
+
+run "test_runtime_options_plan" {
+  # SMOKE: only proves the new runtime inputs plan; upstream resources are not visible.
+  command = plan
+
+  variables {
+    cpu_architecture = "ARM64"
+    capacity_provider_strategy = {
+      FARGATE      = { weight = 0 }
+      FARGATE_SPOT = { weight = 1 }
+    }
+    ephemeral_storage_gib = 50
+    containers = {
+      app = {
+        image                    = "public.ecr.aws/nginx/nginx:stable"
+        port                     = 80
+        entrypoint               = ["sh", "-c"]
+        readonly_root_filesystem = false
+        linux_parameters = {
+          init_process_enabled = true
+          tmpfs                = [{ container_path = "/dev/shm", size = 512 }]
+        }
+      }
+    }
+    ingress = {
+      listener_arn              = "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/alb/0123456789abcdef/0123456789abcdef"
+      alb_security_group_id     = "sg-0123456789abcdef0"
+      container_name            = "app"
+      host_headers              = ["app.example.com"]
+      priority                  = 100
+      health_check_grace_period = 120
+    }
+    autoscaling = {
+      min                = 1
+      max                = 4
+      scale_in_cooldown  = 300
+      scale_out_cooldown = 60
+    }
+  }
+
+  assert {
+    condition     = length(aws_lb_target_group.this) == 1
+    error_message = "The module must still plan with all runtime options set."
+  }
+}
+
+run "test_cpu_architecture_rejected" {
+  command = plan
+
+  variables {
+    cpu_architecture = "ARM"
+  }
+
+  expect_failures = [var.cpu_architecture]
+}
+
+run "test_capacity_provider_rejected" {
+  command = plan
+
+  variables {
+    capacity_provider_strategy = { SPOT = { weight = 1 } }
+  }
+
+  expect_failures = [var.capacity_provider_strategy]
+}
+
+run "test_ephemeral_storage_rejected" {
+  command = plan
+
+  variables {
+    ephemeral_storage_gib = 10
+  }
+
+  expect_failures = [var.ephemeral_storage_gib]
+}

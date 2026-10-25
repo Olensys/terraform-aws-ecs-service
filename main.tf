@@ -19,9 +19,18 @@ locals {
       memory                 = c.memory
       essential              = c.essential
       command                = c.command
-      readonlyRootFilesystem = true
-      environment            = [for n, v in c.environment : { name = n, value = v }]
-      secrets                = [for n, v in c.secrets : { name = n, valueFrom = v }]
+      entrypoint             = c.entrypoint
+      readonlyRootFilesystem = c.readonly_root_filesystem
+      linuxParameters = {
+        initProcessEnabled = try(c.linux_parameters.init_process_enabled, null)
+        tmpfs = length(try(c.linux_parameters.tmpfs, [])) == 0 ? null : [for t in c.linux_parameters.tmpfs : {
+          containerPath = t.container_path
+          size          = t.size
+          mountOptions  = t.mount_options
+        }]
+      }
+      environment = [for n, v in c.environment : { name = n, value = v }]
+      secrets     = [for n, v in c.secrets : { name = n, valueFrom = v }]
       portMappings = c.port == null ? [] : [{
         name          = k
         containerPort = c.port
@@ -47,7 +56,9 @@ locals {
       cpu = {
         policy_type = "TargetTrackingScaling"
         target_tracking_scaling_policy_configuration = {
-          target_value = var.autoscaling.cpu_target
+          target_value       = var.autoscaling.cpu_target
+          scale_in_cooldown  = var.autoscaling.scale_in_cooldown
+          scale_out_cooldown = var.autoscaling.scale_out_cooldown
           predefined_metric_specification = {
             predefined_metric_type = "ECSServiceAverageCPUUtilization"
           }
@@ -58,7 +69,9 @@ locals {
       memory = {
         policy_type = "TargetTrackingScaling"
         target_tracking_scaling_policy_configuration = {
-          target_value = var.autoscaling.memory_target
+          target_value       = var.autoscaling.memory_target
+          scale_in_cooldown  = var.autoscaling.scale_in_cooldown
+          scale_out_cooldown = var.autoscaling.scale_out_cooldown
           predefined_metric_specification = {
             predefined_metric_type = "ECSServiceAverageMemoryUtilization"
           }
@@ -139,13 +152,25 @@ module "this" {
   memory        = var.memory
   desired_count = var.desired_count
 
-  launch_type              = "FARGATE"
+  launch_type              = var.capacity_provider_strategy == null ? "FARGATE" : null
   requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
+  capacity_provider_strategy = var.capacity_provider_strategy == null ? null : {
+    for k, s in var.capacity_provider_strategy : k => {
+      capacity_provider = k
+      weight            = s.weight
+      base              = s.base
+    }
+  }
+  network_mode = "awsvpc"
   runtime_platform = {
     operating_system_family = "LINUX"
-    cpu_architecture        = "X86_64"
+    cpu_architecture        = var.cpu_architecture
   }
+
+  ephemeral_storage = var.ephemeral_storage_gib == null ? null : {
+    size_in_gib = var.ephemeral_storage_gib
+  }
+  health_check_grace_period_seconds = local.ingress_enabled ? var.ingress.health_check_grace_period : null
 
   container_definitions = local.container_definitions
 
