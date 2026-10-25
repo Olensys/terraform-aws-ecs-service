@@ -50,11 +50,6 @@ variable "containers" {
     readonly_root_filesystem = optional(bool, true)
     linux_parameters = optional(object({
       init_process_enabled = optional(bool)
-      tmpfs = optional(list(object({
-        container_path = string
-        size           = number
-        mount_options  = optional(list(string))
-      })), [])
     }))
     health_check = optional(object({
       command      = list(string)
@@ -100,7 +95,7 @@ variable "cpu_architecture" {
 }
 
 variable "capacity_provider_strategy" {
-  description = "Capacity providers to run tasks on, keyed by provider name (FARGATE, FARGATE_SPOT) with a weight and optional base. Null runs on plain FARGATE. Changing between null and a strategy replaces the service."
+  description = "Capacity providers to run tasks on, keyed by provider name (FARGATE, FARGATE_SPOT) with a weight and optional base. Null runs on plain FARGATE. The cluster must have the provider associated (terraform-aws-ecs-cluster associates FARGATE_SPOT by default). Changing between null and a strategy replaces the service."
   type = map(object({
     weight = number
     base   = optional(number, 0)

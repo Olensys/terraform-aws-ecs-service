@@ -344,7 +344,6 @@ run "test_runtime_options_plan" {
         readonly_root_filesystem = false
         linux_parameters = {
           init_process_enabled = true
-          tmpfs                = [{ container_path = "/dev/shm", size = 512 }]
         }
       }
     }

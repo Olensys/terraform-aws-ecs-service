@@ -23,11 +23,6 @@ locals {
       readonlyRootFilesystem = c.readonly_root_filesystem
       linuxParameters = {
         initProcessEnabled = try(c.linux_parameters.init_process_enabled, null)
-        tmpfs = length(try(c.linux_parameters.tmpfs, [])) == 0 ? null : [for t in c.linux_parameters.tmpfs : {
-          containerPath = t.container_path
-          size          = t.size
-          mountOptions  = t.mount_options
-        }]
       }
       environment = [for n, v in c.environment : { name = n, value = v }]
       secrets     = [for n, v in c.secrets : { name = n, valueFrom = v }]
@@ -152,7 +147,7 @@ module "this" {
   memory        = var.memory
   desired_count = var.desired_count
 
-  launch_type              = var.capacity_provider_strategy == null ? "FARGATE" : null
+  launch_type              = "FARGATE"
   requires_compatibilities = ["FARGATE"]
   capacity_provider_strategy = var.capacity_provider_strategy == null ? null : {
     for k, s in var.capacity_provider_strategy : k => {
