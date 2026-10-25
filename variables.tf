@@ -38,14 +38,19 @@ variable "cluster_arn" {
 variable "containers" {
   description = "Containers of the task, keyed by container name. secrets maps environment variable name to an SSM parameter ARN."
   type = map(object({
-    image       = string
-    port        = optional(number)
-    cpu         = optional(number)
-    memory      = optional(number)
-    essential   = optional(bool, true)
-    environment = optional(map(string), {})
-    secrets     = optional(map(string), {})
-    command     = optional(list(string))
+    image                    = string
+    port                     = optional(number)
+    cpu                      = optional(number)
+    memory                   = optional(number)
+    essential                = optional(bool, true)
+    environment              = optional(map(string), {})
+    secrets                  = optional(map(string), {})
+    command                  = optional(list(string))
+    entrypoint               = optional(list(string))
+    readonly_root_filesystem = optional(bool, true)
+    linux_parameters = optional(object({
+      init_process_enabled = optional(bool)
+    }))
     health_check = optional(object({
       command      = list(string)
       interval     = optional(number, 30)
@@ -79,6 +84,39 @@ variable "memory" {
   default     = 1024
 }
 
+variable "cpu_architecture" {
+  description = "CPU architecture of the tasks: X86_64 (default) or ARM64. The container images must be built for it."
+  type        = string
+  default     = "X86_64"
+  validation {
+    condition     = contains(["X86_64", "ARM64"], var.cpu_architecture)
+    error_message = "cpu_architecture must be X86_64 or ARM64."
+  }
+}
+
+variable "capacity_provider_strategy" {
+  description = "Capacity providers to run tasks on, keyed by provider name (FARGATE, FARGATE_SPOT) with a weight and optional base. Null runs on plain FARGATE. The cluster must have the provider associated (terraform-aws-ecs-cluster associates FARGATE_SPOT by default). Changing between null and a strategy replaces the service."
+  type = map(object({
+    weight = number
+    base   = optional(number, 0)
+  }))
+  default = null
+  validation {
+    condition     = var.capacity_provider_strategy == null ? true : alltrue([for k in keys(var.capacity_provider_strategy) : contains(["FARGATE", "FARGATE_SPOT"], k)])
+    error_message = "capacity_provider_strategy keys must be FARGATE or FARGATE_SPOT."
+  }
+}
+
+variable "ephemeral_storage_gib" {
+  description = "Ephemeral storage per task in GiB (21 to 200). Null keeps the Fargate default of 20 GiB."
+  type        = number
+  default     = null
+  validation {
+    condition     = var.ephemeral_storage_gib == null ? true : (var.ephemeral_storage_gib >= 21 && var.ephemeral_storage_gib <= 200)
+    error_message = "ephemeral_storage_gib must be between 21 and 200 when set."
+  }
+}
+
 variable "desired_count" {
   description = "Desired number of running tasks. Applies at creation only: later changes are ignored by the underlying service so that autoscaling and deployments own the count."
   type        = number
@@ -109,6 +147,8 @@ variable "ingress" {
     priority              = optional(number)
     health_check_path     = optional(string, "/health")
     deregistration_delay  = optional(number, 30)
+    # Seconds to ignore failing health checks after a task starts.
+    health_check_grace_period = optional(number)
   })
   default = null
   validation {
@@ -128,6 +168,9 @@ variable "autoscaling" {
     max           = number
     cpu_target    = optional(number, 70)
     memory_target = optional(number)
+    # Seconds between scaling actions.
+    scale_in_cooldown  = optional(number)
+    scale_out_cooldown = optional(number)
   })
   default = null
   validation {
