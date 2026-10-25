@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/Olensys/terraform-aws-ecs-service/compare/v1.0.3...v1.1.0) (2026-10-25)
+
+
+### Features
+
+* add runtime options for architecture, spot, storage and filesystem ([#7](https://github.com/Olensys/terraform-aws-ecs-service/issues/7)) ([c602a43](https://github.com/Olensys/terraform-aws-ecs-service/commit/c602a43f76a28ab35208c3e1b31c2aea9a93d9ba))
+
+
+### Bug Fixes
+
+* **examples:** assign a public IP so tasks can pull the image without NAT ([#4](https://github.com/Olensys/terraform-aws-ecs-service/issues/4)) ([b6978bf](https://github.com/Olensys/terraform-aws-ecs-service/commit/b6978bf23baa7b37933411fae14dfed084818d91))
+
 ## [1.0.3](https://github.com/Olensys/terraform-aws-ecs-service/compare/v1.0.2...v1.0.3) (2026-10-24)
 
 
