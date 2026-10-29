@@ -99,6 +99,7 @@ The nightly apply test runs `examples/minimal` and needs these GitHub repository
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | Task-level CPU units (Fargate sizes: 256, 512, 1024, 2048, 4096, 8192, 16384). | `number` | `512` | no |
 | <a name="input_cpu_architecture"></a> [cpu\_architecture](#input\_cpu\_architecture) | CPU architecture of the tasks: X86\_64 (default) or ARM64. The container images must be built for it. | `string` | `"X86_64"` | no |
 | <a name="input_create"></a> [create](#input\_create) | Whether to create any resources. Set false to create nothing. | `bool` | `true` | no |
+| <a name="input_create_service"></a> [create\_service](#input\_create\_service) | Whether to create the ECS service. Set false to manage only the task definition, roles, log groups and security group, for one-off tasks started with run-task. | `bool` | `true` | no |
 | <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | Desired number of running tasks. Applies at creation only: later changes are ignored by the underlying service so that autoscaling and deployments own the count. | `number` | `1` | no |
 | <a name="input_enable_execute_command"></a> [enable\_execute\_command](#input\_enable\_execute\_command) | Whether to enable ECS Exec on the service. | `bool` | `false` | no |
 | <a name="input_ephemeral_storage_gib"></a> [ephemeral\_storage\_gib](#input\_ephemeral\_storage\_gib) | Ephemeral storage per task in GiB (21 to 200). Null keeps the Fargate default of 20 GiB. | `number` | `null` | no |
@@ -111,13 +112,13 @@ The nightly apply test runs `examples/minimal` and needs these GitHub repository
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_arn"></a> [arn](#output\_arn) | ARN of the ECS service. Null when create is false. |
+| <a name="output_arn"></a> [arn](#output\_arn) | ARN of the ECS service. Null when create or create\_service is false. |
 | <a name="output_deployment_circuit_breaker_enabled"></a> [deployment\_circuit\_breaker\_enabled](#output\_deployment\_circuit\_breaker\_enabled) | Whether the deployment circuit breaker (with rollback) is passed enabled. Null when create is false. |
 | <a name="output_execution_policy_ssm_parameter_arns"></a> [execution\_policy\_ssm\_parameter\_arns](#output\_execution\_policy\_ssm\_parameter\_arns) | SSM parameter ARNs the execution role may read: exactly the containers' secrets. Null when create is false. |
 | <a name="output_execution_role_arn"></a> [execution\_role\_arn](#output\_execution\_role\_arn) | ARN of the task execution IAM role. Null when create is false. |
-| <a name="output_id"></a> [id](#output\_id) | Identifier (ARN) of the ECS service. Null when create is false. |
+| <a name="output_id"></a> [id](#output\_id) | Identifier (ARN) of the ECS service. Null when create or create\_service is false. |
 | <a name="output_log_group_names"></a> [log\_group\_names](#output\_log\_group\_names) | Map of container name to its CloudWatch log group name. Null when create is false. |
-| <a name="output_name"></a> [name](#output\_name) | Name of the ECS service. Null when create is false. |
+| <a name="output_name"></a> [name](#output\_name) | Name of the ECS service. Null when create or create\_service is false. |
 | <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | ID of the service security group. Null when create is false. |
 | <a name="output_tags"></a> [tags](#output\_tags) | Tags applied to every taggable resource, with context.extra\_tags merged in. Null when create is false. |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the load balancer target group. Null when ingress is not set or create is false. |

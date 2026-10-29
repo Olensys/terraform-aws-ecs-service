@@ -117,6 +117,16 @@ variable "ephemeral_storage_gib" {
   }
 }
 
+variable "create_service" {
+  description = "Whether to create the ECS service. Set false to manage only the task definition, roles, log groups and security group, for one-off tasks started with run-task."
+  type        = bool
+  default     = true
+  validation {
+    condition     = var.create_service || (var.ingress == null && var.autoscaling == null && var.alarms == null)
+    error_message = "ingress, autoscaling and alarms require create_service = true."
+  }
+}
+
 variable "desired_count" {
   description = "Desired number of running tasks. Applies at creation only: later changes are ignored by the underlying service so that autoscaling and deployments own the count."
   type        = number
