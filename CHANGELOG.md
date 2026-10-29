@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Olensys/terraform-aws-ecs-service/compare/v1.1.0...v1.2.0) (2026-10-29)
+
+
+### Features
+
+* add create_service to manage only the task definition ([#8](https://github.com/Olensys/terraform-aws-ecs-service/issues/8)) ([e351710](https://github.com/Olensys/terraform-aws-ecs-service/commit/e3517105975ee3c6612c91e096d2ead1db1a1521))
+
 ## [1.1.0](https://github.com/Olensys/terraform-aws-ecs-service/compare/v1.0.3...v1.1.0) (2026-10-25)
 
 
