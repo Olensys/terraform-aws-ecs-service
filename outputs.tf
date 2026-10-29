@@ -16,6 +16,11 @@ output "arn" {
 output "task_definition_arn" {
   description = "ARN of the task definition revision. Null when create is false."
   value       = var.create ? module.this.task_definition_arn : null
+
+  precondition {
+    condition     = !var.create || var.create_service || (var.ingress == null && var.autoscaling == null && var.alarms == null)
+    error_message = "ingress, autoscaling and alarms require create_service = true."
+  }
 }
 
 output "security_group_id" {

@@ -121,10 +121,6 @@ variable "create_service" {
   description = "Whether to create the ECS service. Set false to manage only the task definition, roles, log groups and security group, for one-off tasks started with run-task."
   type        = bool
   default     = true
-  validation {
-    condition     = var.create_service || (var.ingress == null && var.autoscaling == null && var.alarms == null)
-    error_message = "ingress, autoscaling and alarms require create_service = true."
-  }
 }
 
 variable "desired_count" {

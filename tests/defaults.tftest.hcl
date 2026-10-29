@@ -420,5 +420,5 @@ run "test_create_service_false_rejects_ingress_features" {
     autoscaling    = { min = 1, max = 2 }
   }
 
-  expect_failures = [var.create_service]
+  expect_failures = [output.task_definition_arn]
 }
