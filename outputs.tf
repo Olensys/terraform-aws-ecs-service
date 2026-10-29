@@ -1,21 +1,26 @@
 output "id" {
-  description = "Identifier (ARN) of the ECS service. Null when create is false."
-  value       = var.create ? module.this.id : null
+  description = "Identifier (ARN) of the ECS service. Null when create or create_service is false."
+  value       = var.create && var.create_service ? module.this.id : null
 }
 
 output "name" {
-  description = "Name of the ECS service. Null when create is false."
-  value       = var.create ? var.name : null
+  description = "Name of the ECS service. Null when create or create_service is false."
+  value       = var.create && var.create_service ? var.name : null
 }
 
 output "arn" {
-  description = "ARN of the ECS service. Null when create is false."
-  value       = var.create ? module.this.id : null
+  description = "ARN of the ECS service. Null when create or create_service is false."
+  value       = var.create && var.create_service ? module.this.id : null
 }
 
 output "task_definition_arn" {
   description = "ARN of the task definition revision. Null when create is false."
   value       = var.create ? module.this.task_definition_arn : null
+
+  precondition {
+    condition     = !var.create || var.create_service || (var.ingress == null && var.autoscaling == null && var.alarms == null)
+    error_message = "ingress, autoscaling and alarms require create_service = true."
+  }
 }
 
 output "security_group_id" {

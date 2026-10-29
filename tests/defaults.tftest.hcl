@@ -398,3 +398,27 @@ run "test_ephemeral_storage_rejected" {
 
   expect_failures = [var.ephemeral_storage_gib]
 }
+
+run "test_task_definition_without_service" {
+  command = plan
+
+  variables {
+    create_service = false
+  }
+
+  assert {
+    condition     = output.name == null
+    error_message = "name must be null when the service is not created"
+  }
+}
+
+run "test_create_service_false_rejects_ingress_features" {
+  command = plan
+
+  variables {
+    create_service = false
+    autoscaling    = { min = 1, max = 2 }
+  }
+
+  expect_failures = [output.task_definition_arn]
+}

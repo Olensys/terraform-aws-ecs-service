@@ -3,7 +3,7 @@ locals {
 
   cluster_name = var.create ? element(split("/", var.cluster_arn), 1) : null
 
-  ingress_enabled = var.create && var.ingress != null
+  ingress_enabled = var.create && var.create_service && var.ingress != null
   ingress_port    = var.ingress == null ? null : try(var.containers[var.ingress.container_name].port, null)
 
   execution_policy_ssm_parameter_arns = distinct(flatten([for c in var.containers : values(c.secrets)]))
@@ -139,8 +139,9 @@ module "this" {
   source  = "terraform-aws-modules/ecs/aws//modules/service"
   version = "7.6.1"
 
-  create = var.create
-  name   = var.name
+  create         = var.create
+  create_service = var.create_service
+  name           = var.name
 
   cluster_arn   = var.cluster_arn
   cpu           = var.cpu
@@ -199,7 +200,7 @@ module "this" {
     }
   } : {}
 
-  enable_autoscaling       = var.autoscaling != null
+  enable_autoscaling       = var.create_service && var.autoscaling != null
   autoscaling_min_capacity = var.autoscaling == null ? 1 : var.autoscaling.min
   autoscaling_max_capacity = var.autoscaling == null ? 10 : var.autoscaling.max
   autoscaling_policies     = local.autoscaling_policies
@@ -226,7 +227,7 @@ resource "aws_iam_role_policy" "task" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu" {
-  count = var.create && var.alarms != null ? 1 : 0
+  count = var.create && var.create_service && var.alarms != null ? 1 : 0
 
   alarm_name          = "${var.name}-cpu-high"
   alarm_description   = "CPU utilization of ECS service ${var.name} is above ${var.alarms.cpu_threshold}%"
@@ -248,7 +249,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "memory" {
-  count = var.create && var.alarms != null ? 1 : 0
+  count = var.create && var.create_service && var.alarms != null ? 1 : 0
 
   alarm_name          = "${var.name}-memory-high"
   alarm_description   = "Memory utilization of ECS service ${var.name} is above ${var.alarms.memory_threshold}%"
